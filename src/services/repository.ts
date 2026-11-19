@@ -21,7 +21,51 @@ type Kind = keyof Workspace;
 type RecordOf<T extends Kind> = Workspace[T][number];
 const names: Record<Kind, string> = { exercises: 'exercises', plans: 'plans', lessons: 'lessons' };
 
+
 export async function loadWorkspace(userId: string): Promise<Workspace> {
+  if (!firebaseEnabled) return readLocal();
+
+  if (!db || !userId) {
+    throw new Error('Firebase non disponibile: effettua l’accesso.');
+  }
+
+  const firestore = db;
+  const totalStart = performance.now();
+
+  const [ex, pl, le] = await Promise.all(
+    (Object.keys(names) as Kind[]).map(async (kind) => {
+      const start = performance.now();
+
+      try {
+        const snapshot = await getDocs(
+          collection(firestore, 'users', userId, names[kind])
+        );
+
+        console.log(
+          `[Firestore] ${kind}: ${Math.round(performance.now() - start)} ms (${snapshot.size} documenti)`
+        );
+
+        return snapshot;
+      } catch (error) {
+        console.error(`[Firestore] Errore ${kind}:`, error);
+        throw error;
+      }
+    })
+  );
+
+  console.log(
+    `[Firestore] TOTALE: ${Math.round(performance.now() - totalStart)} ms`
+  );
+
+  return {
+    exercises: ex.docs.map(d => d.data() as Exercise),
+    plans: pl.docs.map(d => d.data() as WorkoutPlan),
+    lessons: le.docs.map(d => d.data() as Lesson),
+  };
+}
+
+
+/*export async function loadWorkspace(userId: string): Promise<Workspace> {
   if (!firebaseEnabled) return readLocal();
   if (!db || !userId) throw new Error('Firebase non disponibile: effettua l’accesso.');
   const [ex, pl, le] = await Promise.all(
@@ -32,7 +76,7 @@ export async function loadWorkspace(userId: string): Promise<Workspace> {
     plans: pl.docs.map(d => d.data() as WorkoutPlan),
     lessons: le.docs.map(d => d.data() as Lesson),
   };
-}
+}*/
 
 export async function saveRecord<T extends Kind>(userId: string, kind: T, value: RecordOf<T>): Promise<void> {
   if (!firebaseEnabled) {
