@@ -69,9 +69,25 @@ function AuthScreen() {
     try {
       setLoading(true); setMessage('');
       await signInWithEmailAndPassword(auth, email.trim(), password);
-    } catch {
-      setMessage('Credenziali non valide oppure account non autorizzato. Controlla email e password.');
-    } finally { setLoading(false); }
+} catch (error) {
+  const code = (error as { code?: string }).code ?? 'unknown';
+
+  console.error('Errore login Firebase:', code);
+
+  if (code === 'auth/invalid-credential') {
+    setMessage('Email o password non corretti.');
+  } else if (code === 'auth/operation-not-allowed') {
+    setMessage('Devi abilitare Email/Password su Firebase.');
+  } else if (code === 'auth/user-disabled') {
+    setMessage('Questo account è stato disabilitato.');
+  } else if (code === 'auth/too-many-requests') {
+    setMessage('Troppi tentativi. Riprova più tardi.');
+  } else {
+    setMessage(`Errore Firebase: ${code}`);
+  }
+} finally {
+  setLoading(false);
+}
   };
   const reset = async () => {
     if (!auth || !email.includes('@')) { setMessage('Inserisci prima la tua email.'); return; }
