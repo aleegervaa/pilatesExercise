@@ -1,0 +1,10 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Collezioni private: /users/{uid}/exercises, plans, lessons.
+    match /users/{uid}/{collection}/{docId} {
+      allow read, write: if request.auth != null && request.auth.uid == uid
+                         && collection in ['exercises', 'plans', 'lessons'];
+    }
+  }
+}
