@@ -23,13 +23,16 @@ export type WorkoutItem = {
   notes: string;
 };
 
+export type WorkoutLevel = "base" | "medio" | "avanzato";
+
 export type WorkoutPlan = {
   id: string;
   title: string;
   group: string;
   startDate: string;
-  durationWeeks: number;
-  status: 'active' | 'archived';
+  level: WorkoutLevel;
+  durationWeeks?: number;
+  status: "active" | "archived";
   notes: string;
   items: WorkoutItem[];
   createdAt: string;
@@ -46,10 +49,17 @@ export type Lesson = {
   notes: string;
 };
 
+export type Equipment = {
+  id: string;
+  name: string;
+  createdAt: string;
+};
+
 export type Workspace = {
   exercises: Exercise[];
   plans: WorkoutPlan[];
   lessons: Lesson[];
+  equipment: Equipment[];
 };
 
-export type Tab = 'dashboard' | 'calendar' | 'exercises' | 'plans' | 'history';
+export type Tab = "dashboard" | "calendar" | "exercises" | "plans" | "history";

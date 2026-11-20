@@ -68,7 +68,12 @@ import type {
 } from "./types";
 
 const today = () => localDateKey(new Date());
-const empty: Workspace = { exercises: [], plans: [], lessons: [] };
+const empty: Workspace = {
+  exercises: [],
+  plans: [],
+  lessons: [],
+  equipment: [],
+};
 const tabs: Array<{ id: Tab; label: string; icon: typeof Activity }> = [
   { id: "dashboard", label: "Dashboard", icon: Activity },
   { id: "calendar", label: "Calendario", icon: CalendarDays },
@@ -81,6 +86,17 @@ const DEFAULT_EXERCISE_IMAGE = "/exercises/default-placeholder.png";
 
 function exerciseImage(exercise: Exercise): string {
   return exercise.imageUrl?.trim() || DEFAULT_EXERCISE_IMAGE;
+}
+
+function levelLabel(level?: WorkoutPlan["level"]): string {
+  switch (level) {
+    case "medio":
+      return "Medio";
+    case "avanzato":
+      return "Avanzato";
+    default:
+      return "Base";
+  }
 }
 
 const makeExercise = (): Exercise => ({
@@ -101,7 +117,7 @@ const makePlan = (): WorkoutPlan => ({
   title: "",
   group: "Pilates Arcore",
   startDate: today(),
-  durationWeeks: 6,
+  level: "base",
   status: "active",
   notes: "",
   items: [],
@@ -518,6 +534,7 @@ function App() {
         ...planDraft,
         title: planDraft.title.trim(),
         group: planDraft.group.trim(),
+        level: planDraft.level ?? "base",
       });
       setPlanDraft(null);
     }, "Scheda salvata");
@@ -1010,13 +1027,16 @@ function App() {
                             alt={`Illustrazione di ${ex.name}`}
                             loading="lazy"
                             className={
-                              !ex.imageUrl || ex.imageUrl === DEFAULT_EXERCISE_IMAGE
-                                ? 'placeholder-image'
-                                : ''
+                              !ex.imageUrl ||
+                              ex.imageUrl === DEFAULT_EXERCISE_IMAGE
+                                ? "placeholder-image"
+                                : ""
                             }
-                            onError={event => {
+                            onError={(event) => {
                               event.currentTarget.src = DEFAULT_EXERCISE_IMAGE;
-                              event.currentTarget.classList.add('placeholder-image');
+                              event.currentTarget.classList.add(
+                                "placeholder-image",
+                              );
                             }}
                           />
                           <Badge tone="mint">{ex.category}</Badge>
@@ -1130,7 +1150,7 @@ function App() {
                             <p>
                               <CalendarDays size={15} />{" "}
                               {formatDate(plan.startDate)} <span>·</span>{" "}
-                              {plan.durationWeeks} settimane
+                              Livello {levelLabel(plan.level)}
                             </p>
                             <p>
                               <Dumbbell size={15} /> {plan.items.length}{" "}
@@ -1676,13 +1696,18 @@ function App() {
               </label>
               <label>
                 Corso / gruppo
-                <input
+                <select
                   value={planDraft.group}
                   onChange={(e) =>
-                    setPlanDraft({ ...planDraft, group: e.target.value })
+                    setPlanDraft({
+                      ...planDraft,
+                      group: e.target.value,
+                    })
                   }
-                  placeholder="Es. Pilates Concorezzo"
-                />
+                >
+                  <option value="Pilates Arcore">Pilates Arcore</option>
+                  <option value="Pilates Concorezzo">Pilates Concorezzo</option>
+                </select>
               </label>
             </div>
             <div className="form-grid">
@@ -1698,20 +1723,20 @@ function App() {
                 />
               </label>
               <label>
-                Durata (settimane)
-                <input
-                  type="number"
-                  min="1"
-                  max="104"
-                  required
-                  value={planDraft.durationWeeks}
+                Livello
+                <select
+                  value={planDraft.level ?? "base"}
                   onChange={(e) =>
                     setPlanDraft({
                       ...planDraft,
-                      durationWeeks: Number(e.target.value),
+                      level: e.target.value as WorkoutPlan["level"],
                     })
                   }
-                />
+                >
+                  <option value="base">Base</option>
+                  <option value="medio">Medio</option>
+                  <option value="avanzato">Avanzato</option>
+                </select>
               </label>
             </div>
             <label>
@@ -2017,8 +2042,8 @@ function App() {
               </Badge>
               <span>{previewPlan.group}</span>
               <span>
-                {formatDate(previewPlan.startDate)} ·{" "}
-                {previewPlan.durationWeeks} settimane
+                {formatDate(previewPlan.startDate)} · Livello{" "}
+                {levelLabel(previewPlan.level)}
               </span>
             </div>
             {previewPlan.notes && <p>{previewPlan.notes}</p>}
