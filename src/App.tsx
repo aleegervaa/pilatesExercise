@@ -171,7 +171,108 @@ function App() {
     const draft = record ? structuredClone(record) : makeExercise();
     setExerciseDraft(draft); setVariationText(draft.variations.join('\n')); setExercisePhoto(null); setExtraPhotos([]);
   };
+
   const saveExercise = async (event: FormEvent) => {
+  event.preventDefault();
+
+  if (!exerciseDraft || !exerciseDraft.name.trim()) {
+    setError('Inserisci almeno il nome dell’esercizio.');
+    return;
+  }
+
+  setBusy(true);
+  setError('');
+
+  const draft = {
+    ...exerciseDraft,
+    name: exerciseDraft.name.trim(),
+    variations: variationText
+      .split('\n')
+      .map(v => v.trim())
+      .filter(Boolean),
+  };
+
+  let imageWarning = '';
+
+  try {
+    // IMMAGINE PRINCIPALE FACOLTATIVA
+    if (exercisePhoto) {
+      try {
+        const uploaded = await uploadExerciseImage(uid, exercisePhoto);
+        Object.assign(draft, uploaded);
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : 'Errore caricamento immagine';
+
+        console.warn('Immagine non caricata:', err);
+
+        imageWarning = message;
+      }
+    }
+
+    // FOTO AGGIUNTIVE
+    if ((draft.gallery?.length ?? 0) + extraPhotos.length > 6) {
+      throw new Error(
+        'Sono consentite al massimo 6 foto aggiuntive per esercizio.'
+      );
+    }
+
+    const uploadedGallery: Array<{
+      imageUrl: string;
+      imagePath?: string;
+    }> = [];
+
+    for (const file of extraPhotos) {
+      try {
+        const uploaded = await uploadExerciseImage(uid, file);
+        uploadedGallery.push(uploaded);
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : 'Errore caricamento immagine';
+
+        console.warn('Foto aggiuntiva non caricata:', err);
+
+        imageWarning = imageWarning
+          ? `${imageWarning} ${message}`
+          : message;
+      }
+    }
+
+    draft.gallery = [
+      ...(draft.gallery ?? []),
+      ...uploadedGallery,
+    ];
+
+    // IMPORTANTISSIMO:
+    // l'esercizio viene salvato anche se le immagini non funzionano.
+    await saveRecord(uid, 'exercises', draft);
+
+    await refresh(uid);
+
+    setExerciseDraft(null);
+    setExercisePhoto(null);
+    setExtraPhotos([]);
+
+    if (imageWarning) {
+      notify('Esercizio salvato senza alcune immagini');
+      setError(
+        `L’esercizio è stato salvato correttamente. L’immagine non è stata caricata: ${imageWarning}`
+      );
+    } else {
+      notify('Esercizio salvato');
+    }
+  } catch (err) {
+    setError(
+      err instanceof Error
+        ? err.message
+        : 'Impossibile salvare l’esercizio.'
+    );
+  } finally {
+    setBusy(false);
+  }
+};
+
+  /*const saveExercise = async (event: FormEvent) => {
     event.preventDefault();
     if (!exerciseDraft || !exerciseDraft.name.trim()) return;
     const draft = { ...exerciseDraft, name: exerciseDraft.name.trim(), variations: variationText.split('\n').map(v => v.trim()).filter(Boolean) };
@@ -185,7 +286,7 @@ function App() {
       await saveRecord(uid, 'exercises', draft);
       setExerciseDraft(null); setExercisePhoto(null); setExtraPhotos([]);
     }, 'Esercizio salvato');
-  };
+  };*/
   const removeExercise = (ex: Exercise) => {
     if (!window.confirm(`Eliminare l’esercizio “${ex.name}”? Le schede già salvate manterranno una copia dei suoi dati.`)) return;
     void run(() => deleteRecord(uid, 'exercises', ex.id), 'Esercizio eliminato');
@@ -415,7 +516,7 @@ function App() {
             <label>Attrezzo<input value={exerciseDraft.equipment} onChange={e => setExerciseDraft({ ...exerciseDraft, equipment: e.target.value })} placeholder="Es. Tappetino, ring, softball" /></label></div>
           <label>Varianti e approfondimenti <small>(una variante per riga)</small><textarea rows={3} value={variationText} onChange={e => setVariationText(e.target.value)} placeholder={'Rotazione busto\nAffondo statico\nAffondo con attrezzo'} /></label>
           <div className="photo-editor"><div className="photo-preview">{exerciseDraft.imageUrl ? <img src={exerciseDraft.imageUrl} alt="Immagine esercizio" /> : <ImageIcon size={34} />}</div>
-            <div><strong>Immagine dell’esercizio *</strong><p>La fotografia/illustrazione sarà inclusa nel PDF. Formati PNG o JPEG, massimo 4 MB.</p>
+            <div><strong>Immagine dell’esercizio (facoltativa)*</strong><p>La fotografia/illustrazione sarà inclusa nel PDF. Formati PNG o JPEG, massimo 4 MB.</p>
               <label className="file-button"><Upload size={17} /> {exercisePhoto ? exercisePhoto.name : 'Carica un’immagine'}<input type="file" accept="image/png,image/jpeg" onChange={event => setExercisePhoto(event.target.files?.[0] ?? null)} /></label></div></div>
           <div className="gallery-editor"><strong>Foto aggiuntive / passaggi dell'esercizio</strong><p>Per sequenze come “Affondi → Rotazione busto”. Puoi aggiungere fino a 6 immagini, che verranno inserite anche nel PDF.</p>
             <div className="gallery-thumbs">{(exerciseDraft.gallery ?? []).map((photo, index) => <div className="gallery-thumb" key={index}><img src={photo.imageUrl} alt={`Foto ${index + 1}`} />
