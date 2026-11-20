@@ -25,6 +25,10 @@ const tabs: Array<{ id: Tab; label: string; icon: typeof Activity }> = [
 
 const DEFAULT_EXERCISE_IMAGE = '/exercises/default-placeholder.png';
 
+function exerciseImage(exercise: Exercise): string {
+  return exercise.imageUrl?.trim() || DEFAULT_EXERCISE_IMAGE;
+}
+
 const makeExercise = (): Exercise => ({
   id: newId(), name: '', category: 'Core', description: '', repetitions: '', equipment: 'Tappetino',
   variations: [], imageUrl: DEFAULT_EXERCISE_IMAGE, gallery: [], createdAt: today(),
