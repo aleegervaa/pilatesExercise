@@ -228,7 +228,7 @@ export async function downloadPlanPdf(
 
   addHeader(pdf, 1);
 
-  let y = 31;
+  let y = 25;
 
   /*
    * TITOLO
@@ -247,7 +247,7 @@ export async function downloadPlanPdf(
 
   pdf.text(titleLines, margin, y);
 
-  y += titleLines.length * 9 + 3;
+  y += titleLines.length * 7.5 + 1;
 
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(11);
@@ -261,7 +261,7 @@ export async function downloadPlanPdf(
     y
   );
 
-  y += 11;
+  y += 7;
 
   /*
    * NOTE SCHEDA
@@ -285,7 +285,7 @@ export async function downloadPlanPdf(
   pdf.setDrawColor(205, 221, 211);
   pdf.line(margin, y, pageWidth - margin, y);
 
-  y += 8;
+  y += 6;
 
   /*
    * ESERCIZI
@@ -304,7 +304,7 @@ export async function downloadPlanPdf(
     /*
      * Card più bassa rispetto alla versione precedente.
      */
-    const cardHeight = 58;
+    const cardHeight = 52;
 
     pdf.setFillColor(249, 251, 248);
 
@@ -510,11 +510,11 @@ export async function downloadPlanPdf(
           2
         ),
         margin + 6,
-        y + 49
+        y + 41
       );
     }
 
-    y += cardHeight + 5;
+    y += cardHeight + 3;
 
     /*
      * FOTO AGGIUNTIVE
