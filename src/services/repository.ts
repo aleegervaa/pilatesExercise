@@ -2,7 +2,7 @@ import { collection, deleteDoc, doc, getDocs, setDoc } from 'firebase/firestore'
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { db, firebaseEnabled, storage } from '../lib/firebase';
 import { demoWorkspace, sampleExercises } from '../lib/seed';
-import type { Exercise, Lesson, WorkoutPlan, Workspace } from '../types';
+import type { Equipment, Exercise, Lesson, WorkoutPlan, Workspace } from '../types';
 
 const storageKey = 'lalla-pilates-demo-v1';
 
@@ -19,7 +19,7 @@ function writeLocal(data: Workspace) { localStorage.setItem(storageKey, JSON.str
 
 type Kind = keyof Workspace;
 type RecordOf<T extends Kind> = Workspace[T][number];
-const names: Record<Kind, string> = { exercises: 'exercises', plans: 'plans', lessons: 'lessons' };
+const names: Record<Kind, string> = { exercises: 'exercises', plans: 'plans', lessons: 'lessons', equipment: 'equipment' };
 
 
 export async function loadWorkspace(userId: string): Promise<Workspace> {
@@ -32,51 +32,68 @@ export async function loadWorkspace(userId: string): Promise<Workspace> {
   const firestore = db;
   const totalStart = performance.now();
 
-  const [ex, pl, le] = await Promise.all(
-    (Object.keys(names) as Kind[]).map(async (kind) => {
-      const start = performance.now();
+  const [ex, pl, le, eq] = await Promise.all([
+    getDocs(
+      collection(
+        firestore,
+        'users',
+        userId,
+        'exercises'
+      )
+    ),
 
-      try {
-        const snapshot = await getDocs(
-          collection(firestore, 'users', userId, names[kind])
-        );
+    getDocs(
+      collection(
+        firestore,
+        'users',
+        userId,
+        'plans'
+      )
+    ),
 
-        console.log(
-          `[Firestore] ${kind}: ${Math.round(performance.now() - start)} ms (${snapshot.size} documenti)`
-        );
+    getDocs(
+      collection(
+        firestore,
+        'users',
+        userId,
+        'lessons'
+      )
+    ),
 
-        return snapshot;
-      } catch (error) {
-        console.error(`[Firestore] Errore ${kind}:`, error);
-        throw error;
-      }
-    })
-  );
+    getDocs(
+      collection(
+        firestore,
+        'users',
+        userId,
+        'equipment'
+      )
+    ),
+  ]);
 
   console.log(
-    `[Firestore] TOTALE: ${Math.round(performance.now() - totalStart)} ms`
+    `[Firestore] TOTALE: ${Math.round(
+      performance.now() - totalStart
+    )} ms`
   );
 
   return {
-    exercises: ex.docs.map(d => d.data() as Exercise),
-    plans: pl.docs.map(d => d.data() as WorkoutPlan),
-    lessons: le.docs.map(d => d.data() as Lesson),
+    exercises: ex.docs.map(
+      d => d.data() as Exercise
+    ),
+
+    plans: pl.docs.map(
+      d => d.data() as WorkoutPlan
+    ),
+
+    lessons: le.docs.map(
+      d => d.data() as Lesson
+    ),
+
+    equipment: eq.docs.map(
+      d => d.data() as Equipment
+    ),
   };
 }
-
-
-/*export async function loadWorkspace(userId: string): Promise<Workspace> {
-  if (!firebaseEnabled) return readLocal();
-  if (!db || !userId) throw new Error('Firebase non disponibile: effettua l’accesso.');
-  const [ex, pl, le] = await Promise.all(
-    (Object.keys(names) as Kind[]).map(k => getDocs(collection(db, 'users', userId, names[k]))),
-  );
-  return {
-    exercises: ex.docs.map(d => d.data() as Exercise),
-    plans: pl.docs.map(d => d.data() as WorkoutPlan),
-    lessons: le.docs.map(d => d.data() as Lesson),
-  };
-}*/
 
 export async function saveRecord<T extends Kind>(userId: string, kind: T, value: RecordOf<T>): Promise<void> {
   if (!firebaseEnabled) {
