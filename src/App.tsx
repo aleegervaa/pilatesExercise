@@ -1009,8 +1009,14 @@ function App() {
                             src={exerciseImage(ex)}
                             alt={`Illustrazione di ${ex.name}`}
                             loading="lazy"
-                            onError={(event) => {
+                            className={
+                              !ex.imageUrl || ex.imageUrl === DEFAULT_EXERCISE_IMAGE
+                                ? 'placeholder-image'
+                                : ''
+                            }
+                            onError={event => {
                               event.currentTarget.src = DEFAULT_EXERCISE_IMAGE;
+                              event.currentTarget.classList.add('placeholder-image');
                             }}
                           />
                           <Badge tone="mint">{ex.category}</Badge>
@@ -1759,7 +1765,7 @@ function App() {
                 return (
                   <div className="chosen-exercise" key={item.id}>
                     <img
-                      src={ex.imageUrl}
+                      src={exerciseImage(ex)}
                       alt=""
                       onError={(event) => {
                         event.currentTarget.src = DEFAULT_EXERCISE_IMAGE;
@@ -2021,7 +2027,7 @@ function App() {
               return (
                 <div className="preview-item" key={item.id}>
                   <img
-                    src={ex.imageUrl}
+                    src={exerciseImage(ex)}
                     alt={`Immagine ${ex.name}`}
                     onError={(event) => {
                       event.currentTarget.src = DEFAULT_EXERCISE_IMAGE;
