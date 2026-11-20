@@ -441,7 +441,16 @@ function App() {
             <div className="section-meta">{matchingExercises.length} ESERCIZI TROVATI</div>
             {matchingExercises.length === 0 ? <div className="empty-state big-empty"><ImageIcon size={28} /><h3>Nessun esercizio</h3><p>Modifica i filtri oppure aggiungi il tuo primo esercizio.</p></div> :
             <div className="exercise-grid">{matchingExercises.map(ex => <article key={ex.id} className="exercise-card">
-              <div className="exercise-cover"><img src={ex.imageUrl} alt={`Illustrazione di ${ex.name}`} loading="lazy" /><Badge tone="mint">{ex.category}</Badge></div>
+              <div className="exercise-cover">
+              <img
+                src={exerciseImage(ex)}
+                alt={`Illustrazione di ${ex.name}`}
+                loading="lazy"
+                onError={event => {
+                  event.currentTarget.src = DEFAULT_EXERCISE_IMAGE;
+                }}
+              />
+                <Badge tone="mint">{ex.category}</Badge></div>
               <div className="exercise-content"><div className="exercise-title-row"><h3>{ex.name}</h3><div className="more-menu"><button className="icon-btn" aria-label={`Opzioni ${ex.name}`}><MoreVertical size={19} /></button><div className="menu-pop"><button onClick={() => openExercise(ex)}><Edit3 size={15} /> Modifica</button><button onClick={() => removeExercise(ex)}><Trash2 size={15} /> Elimina</button></div></div></div>
                 <p>{ex.description}</p><div className="exercise-details"><span><Activity size={14} /> {ex.repetitions || '—'}</span><span><Dumbbell size={14} /> {ex.equipment || 'Senza attrezzi'}</span></div>
                 {(ex.gallery?.length ?? 0) > 0 && <div className="mini-gallery">{ex.gallery?.slice(0, 4).map((photo, i) => <img src={photo.imageUrl} key={i} alt={`Passaggio ${i + 1} di ${ex.name}`} />)}</div>}
@@ -459,7 +468,16 @@ function App() {
                 <div className="plan-body"><span className="eyebrow">{plan.group || 'PILATES'}</span><h3>{plan.title}</h3>
                   <p><CalendarDays size={15} /> {formatDate(plan.startDate)} <span>·</span> {plan.durationWeeks} settimane</p>
                   <p><Dumbbell size={15} /> {plan.items.length} esercizi</p>
-                  <div className="plan-avatars">{plan.items.slice(0, 4).map(item => <img key={item.id} src={selectedExercise(item).imageUrl} alt="" />)}{plan.items.length > 4 && <span>+{plan.items.length - 4}</span>}</div>
+                  <div className="plan-avatars">{plan.items.slice(0, 4).map(item =>
+                  <img
+                    key={item.id}
+                    src={exerciseImage(selectedExercise(item))}
+                    alt=""
+                    onError={event => {
+                      event.currentTarget.src = DEFAULT_EXERCISE_IMAGE;
+                    }}
+                  />
+                  )}{plan.items.length > 4 && <span>+{plan.items.length - 4}</span>}</div>
                   <div className="plan-actions"><button className="outline-button" onClick={() => setPreviewPlan(plan)}><BookOpen size={16} /> Visualizza</button>
                     <button className="primary-button" disabled={busy} onClick={() => void pdfPlan(plan)}><Download size={16} /> PDF</button></div>
                   <div className="plan-secondary"><button onClick={() => openPlan(plan)}><Edit3 size={15} /> Modifica</button>
@@ -522,7 +540,17 @@ function App() {
           <div className="form-grid"><label>Ripetizioni / durata<input value={exerciseDraft.repetitions} onChange={e => setExerciseDraft({ ...exerciseDraft, repetitions: e.target.value })} placeholder="Es. 10 per lato / 30 secondi" /></label>
             <label>Attrezzo<input value={exerciseDraft.equipment} onChange={e => setExerciseDraft({ ...exerciseDraft, equipment: e.target.value })} placeholder="Es. Tappetino, ring, softball" /></label></div>
           <label>Varianti e approfondimenti <small>(una variante per riga)</small><textarea rows={3} value={variationText} onChange={e => setVariationText(e.target.value)} placeholder={'Rotazione busto\nAffondo statico\nAffondo con attrezzo'} /></label>
-          <div className="photo-editor"><div className="photo-preview">{exerciseDraft.imageUrl ? <img src={exerciseDraft.imageUrl} alt="Immagine esercizio" /> : <ImageIcon size={34} />}</div>
+          <div className="photo-editor">
+
+          <div className="photo-preview">
+            <img
+              src={exerciseImage(exerciseDraft)}
+              alt="Immagine esercizio"
+              onError={event => {
+                event.currentTarget.src = DEFAULT_EXERCISE_IMAGE;
+              }}
+            />
+          </div>
             <div><strong>Immagine dell’esercizio (facoltativa)*</strong>
             <p>
               Facoltativa. Se presente, la fotografia/illustrazione sarà inclusa nel PDF.
@@ -553,7 +581,15 @@ function App() {
           {planDraft.items.length === 0 && <div className="empty-state">La scheda è vuota. Seleziona almeno un esercizio dalla libreria.</div>}
           <div className="chosen-exercises">{planDraft.items.map((item, index) => {
             const ex = selectedExercise(item);
-            return <div className="chosen-exercise" key={item.id}><img src={ex.imageUrl} alt="" />
+            return <div className="chosen-exercise" key={item.id}>
+              <img
+              src={ex.imageUrl} 
+              alt="" 
+              onError={event => {
+                event.currentTarget.src = DEFAULT_EXERCISE_IMAGE;
+              }}
+              />
+
               <div className="chosen-content"><strong>{index + 1}. {ex.name}</strong><div className="chosen-inputs"><label>Serie<input value={item.sets} onChange={e => updateDraftItem(item.id, { sets: e.target.value })} /></label>
                 <label>Ripetizioni / durata<input value={item.reps} onChange={e => updateDraftItem(item.id, { reps: e.target.value })} /></label>
                 <label>Note<input value={item.notes} onChange={e => updateDraftItem(item.id, { notes: e.target.value })} /></label></div></div>
@@ -588,7 +624,15 @@ function App() {
           {previewPlan.notes && <p>{previewPlan.notes}</p>}
           {previewPlan.items.map((item, index) => {
             const ex = selectedExercise(item);
-            return <div className="preview-item" key={item.id}><img src={ex.imageUrl} alt={`Immagine ${ex.name}`} /><div><strong>{index + 1}. {ex.name}</strong>
+            return <div className="preview-item" key={item.id}>
+              <img src={ex.imageUrl}
+              alt={`Immagine ${ex.name}`} 
+              onError={event => {
+                event.currentTarget.src = DEFAULT_EXERCISE_IMAGE;
+              }}
+              />
+              
+              <div><strong>{index + 1}. {ex.name}</strong>
               <span>{item.sets} serie · {item.reps || ex.repetitions} · {ex.equipment}</span><p>{ex.description}</p>
               {item.notes && <small>Note: {item.notes}</small>}{(ex.gallery?.length ?? 0) > 0 && <div className="mini-gallery">{ex.gallery?.map((photo, i) => <img key={i} src={photo.imageUrl} alt={`Passaggio ${i + 1}`} />)}</div>}{ex.variations.length > 0 && <details><summary>Varianti disponibili</summary><ul>{ex.variations.map((v, i) => <li key={i}>{v}</li>)}</ul></details>}</div></div>;
           })}
