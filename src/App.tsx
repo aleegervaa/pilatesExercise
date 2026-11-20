@@ -58,7 +58,8 @@ function Modal({ title, children, onClose, wide = false }: {
     <div className="modal-backdrop" onMouseDown={onClose}>
       <section className={`modal ${wide ? 'modal-wide' : ''}`} role="dialog" aria-modal="true" aria-label={title}
         onMouseDown={event => event.stopPropagation()}>
-        <div className="modal-header"><h2>{title}</h2><button className="icon-btn" aria-label="Chiudi" onClick={onClose}><X size={20} /></button></div>
+        <div className="modal-header"><h2>{title}</h2><button className="icon-btn" aria-label="Chiudi" onClick={onClose}><X size={20} />
+        </button></div>
         {children}
       </section>
     </div>
@@ -105,13 +106,25 @@ function AuthScreen() {
   };
   return (
     <div className="auth-shell">
-      <div className="auth-brand"><Leaf size={36} /><h1>Lalla <em>Pilates</em></h1><p>Le tue lezioni, il tuo metodo, il tuo spazio.</p></div>
+      <div className="auth-brand"><Leaf size={36} /><h1>Lalla <em>Pilates</em></h1><p>Le tue lezioni, il tuo metodo, il tuo spazio.</p>
+      </div>
       <form className="auth-card" onSubmit={login}>
         <span className="eyebrow">AREA RISERVATA</span><h2>Bentornata!</h2><p>Accedi per gestire schede, esercizi e lezioni.</p>
-        <label>Email<input required type="email" value={email} onChange={event => setEmail(event.target.value)} placeholder="insegnante@email.it" /></label>
-        <label>Password<input required type="password" value={password} onChange={event => setPassword(event.target.value)} placeholder="La tua password" /></label>
+        <label>Email<input required type="email" value={email}
+          onChange={event => 
+          setEmail(event.target.value)}
+          placeholder="mail@email.it"
+          />
+          </label>
+        <label>Password<input required type="password"
+          value={password}
+          onChange={event =>
+          setPassword(event.target.value)}
+          placeholder="La tua password" />
+        </label>
         {message && <p className="message-inline">{message}</p>}
-        <button disabled={loading} className="primary-button" type="submit">{loading ? 'Accesso...' : 'Accedi'} <ArrowRight size={17} /></button>
+        <button disabled={loading} className="primary-button" type="submit">{loading ? 'Accesso...' : 'Accedi'}
+          <ArrowRight size={17} /></button>
         <button className="text-button" type="button" onClick={reset}>Password dimenticata?</button>
         <small>L’account viene creato dall’amministratore nella console Firebase.</small>
       </form>
@@ -375,27 +388,34 @@ function App() {
   return (
     <div className="app-shell">
       <aside className={`sidebar ${mobileOpen ? 'sidebar-open' : ''}`}>
-        <div className="brand"><div className="brand-mark"><Leaf size={26} /></div><div><strong>Lalla <em>Pilates</em></strong><small>STUDIO MANAGER</small></div></div>
+        <div className="brand"><div className="brand-mark"><Leaf size={26} />
+        </div><div><strong>Lalla <em>Pilates</em></strong><small>STUDIO MANAGER</small></div></div>
         <div className="sidebar-section">IL TUO SPAZIO</div>
         <nav className="nav-menu" aria-label="Menu principale">
-          {tabs.map(({ id, label, icon: Icon }) => <button key={id} onClick={() => changeTab(id)} className={`nav-item ${tab === id ? 'nav-active' : ''}`}>
+          {tabs.map(({ id, label, icon: Icon }) => <button key={id}
+            onClick={() => changeTab(id)} className={`nav-item ${tab === id ? 'nav-active' : ''}`}>
             <Icon size={18} />{label}</button>)}
         </nav>
         <div className="sidebar-footer">
-          <div className="sidebar-note"><Sparkles size={17} /><span>Organizza ogni lezione con cura, dal primo esercizio all’ultimo respiro.</span></div>
-          <div className="profile"><div className="avatar">LP</div><div className="profile-name"><strong>Lalla Pilates</strong><small>{firebaseEnabled ? 'Dati su Firebase' : 'Modalità demo locale'}</small></div></div>
+          <div className="sidebar-note"><Sparkles size={17} />
+          <span>Organizza ogni lezione con cura, dal primo esercizio all’ultimo respiro.</span></div>
+          <div className="profile"><div className="avatar">LP</div>
+          <div className="profile-name"><strong>Lalla Pilates</strong><small>{firebaseEnabled ? 'Dati su Firebase' : 'Modalità demo locale'}</small></div></div>
           {firebaseEnabled && <button className="logout-btn" onClick={() => void signOut(auth!)}><LogOut size={16} /> Esci</button>}
         </div>
       </aside>
 
       <main className="main-content">
-        <header className="topbar"><button className="mobile-menu icon-btn" aria-label="Apri menu" onClick={() => setMobileOpen(!mobileOpen)}><Menu size={22} /></button>
+        <header className="topbar"><button className="mobile-menu icon-btn" aria-label="Apri menu"
+        onClick={() => setMobileOpen(!mobileOpen)}><Menu size={22} /></button>
           <div><div className="topbar-crumb">IL TUO STUDIO <span>/</span> {tabs.find(entry => entry.id === tab)?.label}</div>
             <div className="topbar-mobile-title">Lalla Pilates Studio</div></div>
-          <div className="topbar-right"><Badge tone={firebaseEnabled ? 'mint' : 'purple'}>{firebaseEnabled ? '● Firebase attivo' : '◉ Demo locale'}</Badge>
+          <div className="topbar-right">
+            <Badge tone={firebaseEnabled ? 'mint' : 'purple'}>{firebaseEnabled ? '● Firebase attivo' : '◉ Demo locale'}</Badge>
             <span className="today-date">{formatDate(today())}</span></div></header>
 
-        {error && <div className="error-banner" role="alert"><CircleHelp size={18} /><span>{error}</span><button onClick={() => setError('')} aria-label="Chiudi errore"><X size={16} /></button></div>}
+        {error && <div className="error-banner" role="alert"><CircleHelp size={18} /><span>{error}</span>
+        <button onClick={() => setError('')} aria-label="Chiudi errore"><X size={16} /></button></div>}
         {notification && <div className="success-banner" role="status"><CheckCircle2 size={18} />{notification}</div>}
         {busy && <div className="busy-bar">Salvataggio o elaborazione in corso...</div>}
         {loadingData ? <div className="page-loading">Caricamento dati...</div> : <>
@@ -419,12 +439,15 @@ function App() {
                 {upcoming.length === 0 ? <div className="empty-state">Non ci sono lezioni future. Aggiungine una dal calendario.</div> :
                   <div className="agenda-list">{upcoming.map(lesson => <button className="agenda-item" key={lesson.id} onClick={() => setLessonDraft(structuredClone(lesson))}>
                     <div className="agenda-date"><strong>{lesson.date.slice(8)}</strong><small>{new Date(`${lesson.date}T12:00:00`).toLocaleDateString('it-IT', { month: 'short' })}</small></div>
-                    <div className="agenda-info"><strong>{lesson.title}</strong><span><Clock size={14} /> {lesson.time} &nbsp; <MapPin size={14} /> {lesson.location || 'Luogo da definire'}</span></div><ArrowRight size={18} /></button>)}</div>}
+                    <div className="agenda-info"><strong>{lesson.title}</strong><span><Clock size={14} /> {lesson.time} &nbsp; <MapPin size={14} />
+                    {lesson.location || 'Luogo da definire'}</span></div><ArrowRight size={18} /></button>)}</div>}
               </section>
               <section className="content-card"><div className="section-heading"><div><span className="eyebrow">AZIONI RAPIDE</span><h2>Cosa vuoi fare?</h2></div></div>
                 <div className="quick-actions">
-                  <button onClick={() => { changeTab('exercises'); openExercise(); }}><span className="quick-icon"><Dumbbell size={21} /></span><span><strong>Nuovo esercizio</strong><small>Aggiungi immagine, varianti e dettagli</small></span><Plus size={19} /></button>
-                  <button onClick={() => { changeTab('plans'); openPlan(); }}><span className="quick-icon"><FileText size={21} /></span><span><strong>Crea una scheda</strong><small>Componi il tuo allenamento</small></span><Plus size={19} /></button>
+                  <button onClick={() => { changeTab('exercises'); openExercise(); }}><span className="quick-icon">
+                    <Dumbbell size={21} /></span><span><strong>Nuovo esercizio</strong><small>Aggiungi immagine, varianti e dettagli</small></span><Plus size={19} /></button>
+                  <button onClick={() => { changeTab('plans'); openPlan(); }}><span className="quick-icon"><FileText size={21} /></span><span><strong>Crea una scheda</strong>
+                  <small>Componi il tuo allenamento</small></span><Plus size={19} /></button>
                   <button onClick={() => { changeTab('calendar'); setLessonDraft(makeLesson()); }}><span className="quick-icon"><CalendarDays size={21} /></span><span><strong>Organizza una lezione</strong><small>Assegna giorno, orario e scheda</small></span><Plus size={19} /></button>
                 </div>
               </section>
