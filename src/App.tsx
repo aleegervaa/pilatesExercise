@@ -516,7 +516,11 @@ function App() {
             <label>Attrezzo<input value={exerciseDraft.equipment} onChange={e => setExerciseDraft({ ...exerciseDraft, equipment: e.target.value })} placeholder="Es. Tappetino, ring, softball" /></label></div>
           <label>Varianti e approfondimenti <small>(una variante per riga)</small><textarea rows={3} value={variationText} onChange={e => setVariationText(e.target.value)} placeholder={'Rotazione busto\nAffondo statico\nAffondo con attrezzo'} /></label>
           <div className="photo-editor"><div className="photo-preview">{exerciseDraft.imageUrl ? <img src={exerciseDraft.imageUrl} alt="Immagine esercizio" /> : <ImageIcon size={34} />}</div>
-            <div><strong>Immagine dell’esercizio (facoltativa)*</strong><p>La fotografia/illustrazione sarà inclusa nel PDF. Formati PNG o JPEG, massimo 4 MB.</p>
+            <div><strong>Immagine dell’esercizio (facoltativa)*</strong>
+            <p>
+              Facoltativa. Se presente, la fotografia/illustrazione sarà inclusa nel PDF.
+              Formati PNG o JPEG, massimo 4 MB.
+            </p>
               <label className="file-button"><Upload size={17} /> {exercisePhoto ? exercisePhoto.name : 'Carica un’immagine'}<input type="file" accept="image/png,image/jpeg" onChange={event => setExercisePhoto(event.target.files?.[0] ?? null)} /></label></div></div>
           <div className="gallery-editor"><strong>Foto aggiuntive / passaggi dell'esercizio</strong><p>Per sequenze come “Affondi → Rotazione busto”. Puoi aggiungere fino a 6 immagini, che verranno inserite anche nel PDF.</p>
             <div className="gallery-thumbs">{(exerciseDraft.gallery ?? []).map((photo, index) => <div className="gallery-thumb" key={index}><img src={photo.imageUrl} alt={`Foto ${index + 1}`} />
