@@ -23,10 +23,13 @@ const tabs: Array<{ id: Tab; label: string; icon: typeof Activity }> = [
   { id: 'history', label: 'Storico schede', icon: Archive },
 ];
 
+const DEFAULT_EXERCISE_IMAGE = '/exercises/default-placeholder.png';
+
 const makeExercise = (): Exercise => ({
   id: newId(), name: '', category: 'Core', description: '', repetitions: '', equipment: 'Tappetino',
-  variations: [], imageUrl: '', gallery: [], createdAt: today(),
+  variations: [], imageUrl: DEFAULT_EXERCISE_IMAGE, gallery: [], createdAt: today(),
 });
+
 const makePlan = (): WorkoutPlan => ({
   id: newId(), title: '', group: 'Pilates Arcore', startDate: today(),
   durationWeeks: 6, status: 'active', notes: '', items: [], createdAt: today(),
