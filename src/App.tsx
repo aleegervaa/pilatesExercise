@@ -448,7 +448,8 @@ function App() {
                     <Dumbbell size={21} /></span><span><strong>Nuovo esercizio</strong><small>Aggiungi immagine, varianti e dettagli</small></span><Plus size={19} /></button>
                   <button onClick={() => { changeTab('plans'); openPlan(); }}><span className="quick-icon"><FileText size={21} /></span><span><strong>Crea una scheda</strong>
                   <small>Componi il tuo allenamento</small></span><Plus size={19} /></button>
-                  <button onClick={() => { changeTab('calendar'); setLessonDraft(makeLesson()); }}><span className="quick-icon"><CalendarDays size={21} /></span><span><strong>Organizza una lezione</strong><small>Assegna giorno, orario e scheda</small></span><Plus size={19} /></button>
+                  <button onClick={() => { changeTab('calendar'); setLessonDraft(makeLesson()); }}><span className="quick-icon"><CalendarDays size={21} />
+                  </span><span><strong>Organizza una lezione</strong><small>Assegna giorno, orario e scheda</small></span><Plus size={19} /></button>
                 </div>
               </section>
             </div>
@@ -460,9 +461,12 @@ function App() {
               <button className="primary-button" onClick={() => openExercise()}><Plus size={17} /> Aggiungi esercizio</button></div>
             <div className="toolbar"><div className="search-field"><Search size={19} /><input value={searchExercise} onChange={event => setSearchExercise(event.target.value)} placeholder="Cerca esercizio o attrezzo..." /></div>
               <div className="select-wrap"><Filter size={17} /><select aria-label="Filtra categoria" value={filterCategory} onChange={event => setFilterCategory(event.target.value)}>{categories.map(cat => <option key={cat}>{cat}</option>)}</select></div>
-              {firebaseEnabled && <button className="outline-button" disabled={busy} onClick={() => void run(async () => { const count = await importSampleExercises(uid, workspace.exercises); notify(`${count} esercizi importati`); }, 'Libreria aggiornata')}><Upload size={16} /> Esempi</button>}</div>
+              {firebaseEnabled && <button className="outline-button" disabled={busy} onClick={() => void run(
+                async () => { const count = await importSampleExercises(uid, workspace.exercises); notify(`${count} esercizi importati`); }, 'Libreria aggiornata')}>
+                  <Upload size={16} /> Esempi</button>}</div>
             <div className="section-meta">{matchingExercises.length} ESERCIZI TROVATI</div>
-            {matchingExercises.length === 0 ? <div className="empty-state big-empty"><ImageIcon size={28} /><h3>Nessun esercizio</h3><p>Modifica i filtri oppure aggiungi il tuo primo esercizio.</p></div> :
+            {matchingExercises.length === 0 ? <div className="empty-state big-empty"><ImageIcon size={28} /><h3>Nessun esercizio</h3>
+            <p>Modifica i filtri oppure aggiungi il tuo primo esercizio.</p></div> :
             <div className="exercise-grid">{matchingExercises.map(ex => <article key={ex.id} className="exercise-card">
               <div className="exercise-cover">
               <img
@@ -474,19 +478,29 @@ function App() {
                 }}
               />
                 <Badge tone="mint">{ex.category}</Badge></div>
-              <div className="exercise-content"><div className="exercise-title-row"><h3>{ex.name}</h3><div className="more-menu"><button className="icon-btn" aria-label={`Opzioni ${ex.name}`}><MoreVertical size={19} /></button><div className="menu-pop"><button onClick={() => openExercise(ex)}><Edit3 size={15} /> Modifica</button><button onClick={() => removeExercise(ex)}><Trash2 size={15} /> Elimina</button></div></div></div>
-                <p>{ex.description}</p><div className="exercise-details"><span><Activity size={14} /> {ex.repetitions || '—'}</span><span><Dumbbell size={14} /> {ex.equipment || 'Senza attrezzi'}</span></div>
-                {(ex.gallery?.length ?? 0) > 0 && <div className="mini-gallery">{ex.gallery?.slice(0, 4).map((photo, i) => <img src={photo.imageUrl} key={i} alt={`Passaggio ${i + 1} di ${ex.name}`} />)}</div>}
-                {ex.variations.length > 0 && <details className="variations"><summary><ChevronDown size={15} /> {ex.variations.length} varianti</summary><ul>{ex.variations.map((v, i) => <li key={`${v}-${i}`}>{v}</li>)}</ul></details>}
+              <div className="exercise-content"><div className="exercise-title-row"><h3>{ex.name}</h3>
+              <div className="more-menu"><button className="icon-btn" aria-label={`Opzioni ${ex.name}`}><MoreVertical size={19} />
+              </button><div className="menu-pop"><button onClick={() => openExercise(ex)}><Edit3 size={15} /> Modifica</button>
+              <button onClick={() => removeExercise(ex)}><Trash2 size={15} /> Elimina</button></div></div></div>
+                <p>{ex.description}</p><div className="exercise-details"><span><Activity size={14} /> {ex.repetitions || '—'}</span>
+                <span><Dumbbell size={14} /> {ex.equipment || 'Senza attrezzi'}</span></div>
+                {(ex.gallery?.length ?? 0) > 0 && <div className="mini-gallery">{ex.gallery?.slice(0, 4).map((photo, i) => <img src={photo.imageUrl} key={i} alt={`Passaggio ${i + 1} di ${ex.name}`} />)}
+                </div>}
+                {ex.variations.length > 0 && <details className="variations"><summary><ChevronDown size={15} /> 
+                {ex.variations.length} varianti</summary><ul>{ex.variations.map((v, i) => <li key={`${v}-${i}`}>{v}</li>)}</ul>
+                </details>}
                 <button className="card-edit" onClick={() => openExercise(ex)}>Modifica esercizio <Edit3 size={15} /></button>
               </div></article>)}</div>}
           </div>}
 
           {tab === 'plans' && <div className="page">
-            <div className="page-heading"><div><span className="eyebrow">ALLENAMENTI SU MISURA</span><h1>Le tue schede</h1><p>Organizza gli esercizi, personalizza serie e ripetizioni, esporta il PDF con immagini.</p></div>
+            <div className="page-heading"><div><span className="eyebrow">ALLENAMENTI SU MISURA</span>
+            <h1>Le tue schede</h1><p>Organizza gli esercizi, personalizza serie e ripetizioni, esporta il PDF con immagini.</p></div>
               <button className="primary-button" onClick={() => openPlan()}><Plus size={17} /> Nuova scheda</button></div>
-            {workspace.plans.filter(p => p.status === 'active').length === 0 ? <div className="empty-state big-empty"><FileText size={30} /><h3>Nessuna scheda attiva</h3><p>Crea una scheda e scegli gli esercizi dalla libreria.</p></div> :
-            <div className="plans-grid">{workspace.plans.filter(p => p.status === 'active').sort((a, b) => b.startDate.localeCompare(a.startDate)).map(plan =>
+            {workspace.plans.filter(p => p.status === 'active').length === 0 ? <div className="empty-state big-empty"><FileText size={30} />
+            <h3>Nessuna scheda attiva</h3><p>Crea una scheda e scegli gli esercizi dalla libreria.</p></div> :
+            <div className="plans-grid">
+              {workspace.plans.filter(p => p.status === 'active').sort((a, b) => b.startDate.localeCompare(a.startDate)).map(plan =>
               <article className="plan-card" key={plan.id}><div className="plan-decor"><Leaf size={76} strokeWidth={1} /><Badge>Attiva</Badge></div>
                 <div className="plan-body"><span className="eyebrow">{plan.group || 'PILATES'}</span><h3>{plan.title}</h3>
                   <p><CalendarDays size={15} /> {formatDate(plan.startDate)} <span>·</span> {plan.durationWeeks} settimane</p>
@@ -501,7 +515,8 @@ function App() {
                     }}
                   />
                   )}{plan.items.length > 4 && <span>+{plan.items.length - 4}</span>}</div>
-                  <div className="plan-actions"><button className="outline-button" onClick={() => setPreviewPlan(plan)}><BookOpen size={16} /> Visualizza</button>
+                  <div className="plan-actions"><button className="outline-button" onClick={() => setPreviewPlan(plan)}><BookOpen size={16} /> 
+                  Visualizza</button>
                     <button className="primary-button" disabled={busy} onClick={() => void pdfPlan(plan)}><Download size={16} /> PDF</button></div>
                   <div className="plan-secondary"><button onClick={() => openPlan(plan)}><Edit3 size={15} /> Modifica</button>
                     <button onClick={() => archivePlan(plan)}><Archive size={15} /> Archivia</button>
@@ -510,29 +525,42 @@ function App() {
           </div>}
 
           {tab === 'history' && <div className="page">
-            <div className="page-heading"><div><span className="eyebrow">IL TUO ARCHIVIO</span><h1>Storico delle schede</h1><p>Tutte le schede, anche quelle archiviate, ricercabili per nome e data.</p></div></div>
-            <div className="toolbar"><div className="search-field"><Search size={19} /><input value={historySearch} onChange={event => setHistorySearch(event.target.value)} placeholder="Nome scheda o corso..." /></div>
-              <label className="filter-date">Dal<input type="date" value={historyFrom} onChange={event => setHistoryFrom(event.target.value)} /></label>
-              <label className="filter-date">Al<input type="date" value={historyTo} onChange={event => setHistoryTo(event.target.value)} /></label>
-              {(historySearch || historyFrom || historyTo) && <button className="text-button" onClick={() => { setHistorySearch(''); setHistoryFrom(''); setHistoryTo(''); }}>Azzera filtri</button>}</div>
-            <div className="history-list">{matchingHistory.length === 0 ? <div className="empty-state">Nessuna scheda corrisponde ai filtri.</div> : matchingHistory.map(plan =>
+            <div className="page-heading"><div><span className="eyebrow">IL TUO ARCHIVIO</span>
+            <h1>Storico delle schede</h1><p>Tutte le schede, anche quelle archiviate, ricercabili per nome e data.</p></div></div>
+            <div className="toolbar"><div className="search-field"><Search size={19} /><input value={historySearch}
+            onChange={event => setHistorySearch(event.target.value)} placeholder="Nome scheda o corso..." /></div>
+              <label className="filter-date">Dal<input type="date" value={historyFrom}
+              onChange={event => setHistoryFrom(event.target.value)} /></label>
+              <label className="filter-date">Al<input type="date" value={historyTo}
+              onChange={event => setHistoryTo(event.target.value)} /></label>
+              {(historySearch || historyFrom || historyTo) && <button className="text-button"
+              onClick={() => { setHistorySearch(''); setHistoryFrom(''); setHistoryTo(''); }}>Azzera filtri</button>}</div>
+            <div className="history-list">{matchingHistory.length === 0 ? 
+              <div className="empty-state">Nessuna scheda corrisponde ai filtri.</div> : matchingHistory.map(plan =>
               <article className="history-row" key={plan.id}><div className="history-icon"><FileText size={22} /></div>
-                <div className="history-info"><h3>{plan.title}</h3><p>{plan.group || 'Pilates'} · {formatDate(plan.startDate)} · {plan.items.length} esercizi</p></div>
+                <div className="history-info">
+                  <h3>{plan.title}</h3><p>{plan.group || 'Pilates'} · {formatDate(plan.startDate)} · {plan.items.length} esercizi</p></div>
                 <Badge tone={plan.status === 'active' ? 'mint' : 'gray'}>{plan.status === 'active' ? 'Attiva' : 'Archiviata'}</Badge>
                 <div className="history-actions"><button className="outline-button" onClick={() => setPreviewPlan(plan)}>Visualizza</button>
                   <button className="icon-btn" title="Modifica" onClick={() => openPlan(plan)}><Edit3 size={17} /></button>
-                  <button className="icon-btn" title="Scarica PDF" disabled={busy} onClick={() => void pdfPlan(plan)}><Download size={17} /></button>
-                  <button className="icon-btn" title={plan.status === 'active' ? 'Archivia' : 'Riattiva'} onClick={() => archivePlan(plan)}><RotateCcw size={17} /></button>
+                  <button className="icon-btn" title="Scarica PDF" disabled={busy}
+                  onClick={() => void pdfPlan(plan)}><Download size={17} /></button>
+                  <button className="icon-btn" title={plan.status === 'active' ? 'Archivia' : 'Riattiva'}
+                  onClick={() => archivePlan(plan)}><RotateCcw size={17} /></button>
                   <button className="icon-btn danger-link" title="Elimina" onClick={() => deletePlan(plan)}><Trash2 size={17} /></button></div>
               </article>)}</div>
           </div>}
 
           {tab === 'calendar' && <div className="page">
-            <div className="page-heading"><div><span className="eyebrow">ORGANIZZA IL TUO TEMPO</span><h1>Calendario lezioni</h1><p>Seleziona un giorno per aggiungere una lezione oppure clicca su una già programmata.</p></div>
+            <div className="page-heading"><div><span className="eyebrow">ORGANIZZA IL TUO TEMPO</span><h1>Calendario lezioni</h1>
+            <p>Seleziona un giorno per aggiungere una lezione oppure clicca su una già programmata.</p></div>
               <button className="primary-button" onClick={() => setLessonDraft(makeLesson())}><Plus size={17} /> Nuova lezione</button></div>
-            <div className="calendar-card"><div className="calendar-toolbar"><h2>{monthLabel(month)}</h2><div><button className="outline-button" onClick={() => setMonth(new Date(new Date().getFullYear(), new Date().getMonth(), 1))}>Oggi</button>
-              <button className="icon-btn" aria-label="Mese precedente" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))}><ArrowLeft size={19} /></button>
-              <button className="icon-btn" aria-label="Mese successivo" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))}><ArrowRight size={19} /></button></div></div>
+            <div className="calendar-card"><div className="calendar-toolbar"><h2>{monthLabel(month)}</h2><div><button className="outline-button"
+            onClick={() => setMonth(new Date(new Date().getFullYear(), new Date().getMonth(), 1))}>Oggi</button>
+              <button className="icon-btn" aria-label="Mese precedente"
+              onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))}><ArrowLeft size={19} /></button>
+              <button className="icon-btn" aria-label="Mese successivo"
+              onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))}><ArrowRight size={19} /></button></div></div>
               <div className="calendar-grid">{['LUN', 'MAR', 'MER', 'GIO', 'VEN', 'SAB', 'DOM'].map(day => <div className="calendar-weekday" key={day}>{day}</div>)}
                 {Array.from({ length: 42 }, (_, i) => {
                   const first = new Date(month.getFullYear(), month.getMonth(), 1);
