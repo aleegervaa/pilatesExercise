@@ -1290,6 +1290,99 @@ a {
   backdrop-filter: blur(3px);
 }
 
+.equipment-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.equipment-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.equipment-label-row strong {
+  font-size: 12px;
+  color: #385849;
+}
+
+.equipment-select-row {
+  display: flex;
+  gap: 9px;
+  align-items: stretch;
+}
+
+.equipment-select-row select {
+  flex: 1;
+}
+
+.equipment-new-row {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  padding: 12px;
+  border: 1px dashed #d2e2d8;
+  border-radius: 9px;
+  background: #f8fbf8;
+}
+
+.equipment-new-row input {
+  flex: 1;
+}
+
+.equipment-manager {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid #e0e9e1;
+  border-radius: 10px;
+  background: #fafcf9;
+}
+
+.equipment-manager-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.equipment-manager-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 45px;
+  padding: 7px 10px;
+  border: 1px solid #e7ece7;
+  border-radius: 8px;
+  background: white;
+}
+
+.equipment-manager-row > span {
+  font-size: 12px;
+  color: #385849;
+  font-weight: 600;
+}
+
+.equipment-manager-row > div {
+  display: flex;
+  align-items: center;
+}
+
+@media (max-width: 720px) {
+  .equipment-select-row,
+  .equipment-new-row {
+    flex-direction: column;
+  }
+
+  .equipment-select-row button,
+  .equipment-new-row button {
+    width: 100%;
+  }
+}
+
 .modal {
   width: min(100%,590px);
   max-height: min(90vh,960px);

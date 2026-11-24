@@ -52,13 +52,13 @@ import { formatDate, localDateKey, monthLabel, newId } from "./lib/date";
 import { downloadPlanPdf } from "./lib/pdf";
 import {
   deleteRecord,
-  importSampleExercises,
   loadWorkspace,
   resetDemo,
   saveRecord,
   uploadExerciseImage,
 } from "./services/repository";
 import type {
+  Equipment,
   Exercise,
   Lesson,
   Tab,
@@ -99,13 +99,17 @@ function levelLabel(level?: WorkoutPlan["level"]): string {
   }
 }
 
+function normalizeEquipmentName(value: string): string {
+  return value.trim().replace(/\s+/g, " ").toLocaleLowerCase("it-IT");
+}
+
 const makeExercise = (): Exercise => ({
   id: newId(),
   name: "",
   category: "Core",
   description: "",
   repetitions: "",
-  equipment: "Tappetino",
+  equipment: "Senza attrezzi",
   variations: [],
   imageUrl: DEFAULT_EXERCISE_IMAGE,
   gallery: [],
@@ -299,6 +303,11 @@ function App() {
   const [extraPhotos, setExtraPhotos] = useState<File[]>([]);
   const [variationText, setVariationText] = useState("");
   const [planDraft, setPlanDraft] = useState<WorkoutPlan | null>(null);
+
+  const [showNewEquipment, setShowNewEquipment] = useState(false);
+  const [newEquipmentName, setNewEquipmentName] = useState("");
+  const [showEquipmentManager, setShowEquipmentManager] = useState(false);
+
   const [addExerciseId, setAddExerciseId] = useState("");
   const [lessonDraft, setLessonDraft] = useState<Lesson | null>(null);
   const [previewPlan, setPreviewPlan] = useState<WorkoutPlan | null>(null);
@@ -361,6 +370,152 @@ function App() {
     setExercisePhoto(null);
     setExtraPhotos([]);
   };
+
+  const saveNewEquipment = async () => {
+    const name = newEquipmentName.trim().replace(/\s+/g, " ");
+
+    if (!name) {
+      setError("Inserisci il nome dell’attrezzo.");
+      return;
+    }
+
+    const normalizedName = normalizeEquipmentName(name);
+
+    const existing = workspace.equipment.find(
+      (equipment) => normalizeEquipmentName(equipment.name) === normalizedName,
+    );
+
+    if (existing) {
+      setError(`L’attrezzo “${existing.name}” esiste già.`);
+
+      if (exerciseDraft) {
+        setExerciseDraft({
+          ...exerciseDraft,
+          equipment: existing.name,
+        });
+      }
+
+      return;
+    }
+
+    const equipment: Equipment = {
+      id: newId(),
+      name,
+      createdAt: today(),
+    };
+
+    await run(async () => {
+      await saveRecord(uid, "equipment", equipment);
+
+      if (exerciseDraft) {
+        setExerciseDraft({
+          ...exerciseDraft,
+          equipment: name,
+        });
+      }
+
+      setNewEquipmentName("");
+      setShowNewEquipment(false);
+    }, "Attrezzo salvato");
+  };
+
+  const renameEquipment = async (equipment: Equipment) => {
+  const answer = window.prompt(
+    "Nuovo nome dell’attrezzo:",
+    equipment.name,
+  );
+
+  if (answer === null) return;
+
+  const newName = answer.trim().replace(/\s+/g, " ");
+
+  if (!newName) {
+    setError("Il nome dell’attrezzo non può essere vuoto.");
+    return;
+  }
+
+  if (
+    normalizeEquipmentName(newName) ===
+    normalizeEquipmentName(equipment.name)
+  ) {
+    return;
+  }
+
+  const duplicate = workspace.equipment.find(
+    (item) =>
+      item.id !== equipment.id &&
+      normalizeEquipmentName(item.name) ===
+        normalizeEquipmentName(newName),
+  );
+
+  if (duplicate) {
+    setError(`Esiste già l’attrezzo “${duplicate.name}”.`);
+    return;
+  }
+
+  const affectedExercises = workspace.exercises.filter(
+    (exercise) =>
+      normalizeEquipmentName(exercise.equipment) ===
+      normalizeEquipmentName(equipment.name),
+  );
+
+  await run(async () => {
+    await saveRecord(uid, "equipment", {
+      ...equipment,
+      name: newName,
+    });
+
+    for (const exercise of affectedExercises) {
+      await saveRecord(uid, "exercises", {
+        ...exercise,
+        equipment: newName,
+      });
+    }
+
+    if (
+      exerciseDraft &&
+      normalizeEquipmentName(exerciseDraft.equipment) ===
+        normalizeEquipmentName(equipment.name)
+    ) {
+      setExerciseDraft({
+        ...exerciseDraft,
+        equipment: newName,
+      });
+    }
+  }, "Attrezzo rinominato");
+};
+
+
+const removeEquipment = async (equipment: Equipment) => {
+  const usedBy = workspace.exercises.filter(
+    (exercise) =>
+      normalizeEquipmentName(exercise.equipment) ===
+      normalizeEquipmentName(equipment.name),
+  );
+
+  if (usedBy.length > 0) {
+    setError(
+      `Non puoi eliminare “${equipment.name}”: è utilizzato da ${usedBy.length} ${
+        usedBy.length === 1 ? "esercizio" : "esercizi"
+      }. Modifica prima quegli esercizi.`,
+    );
+
+    return;
+  }
+
+  if (
+    !window.confirm(
+      `Eliminare definitivamente l’attrezzo “${equipment.name}”?`,
+    )
+  ) {
+    return;
+  }
+
+  await run(
+    () => deleteRecord(uid, "equipment", equipment.id),
+    "Attrezzo eliminato",
+  );
+};
 
   const saveExercise = async (event: FormEvent) => {
     event.preventDefault();
@@ -603,6 +758,38 @@ function App() {
   const selectedExercise = (item: WorkoutItem) =>
     workspace.exercises.find((ex) => ex.id === item.exerciseId) ??
     item.snapshot;
+
+  const equipmentOptions = useMemo(() => {
+    const equipmentMap = new Map<string, string>();
+
+    const addEquipment = (name: string) => {
+      const cleanName = name.trim().replace(/\s+/g, " ");
+
+      if (!cleanName) return;
+
+      const key = normalizeEquipmentName(cleanName);
+
+      if (!equipmentMap.has(key)) {
+        equipmentMap.set(key, cleanName);
+      }
+    };
+
+    addEquipment("Senza attrezzi");
+
+    workspace.equipment.forEach((equipment) => {
+      addEquipment(equipment.name);
+    });
+
+    // Manteniamo compatibili eventuali vecchi esercizi
+    // che hanno già un attrezzo scritto nel documento.
+    workspace.exercises.forEach((exercise) => {
+      addEquipment(exercise.equipment);
+    });
+
+    return Array.from(equipmentMap.values()).sort((a, b) =>
+      a.localeCompare(b, "it"),
+    );
+  }, [workspace.equipment, workspace.exercises]);
 
   const categories = useMemo(
     () =>
@@ -988,23 +1175,6 @@ function App() {
                       ))}
                     </select>
                   </div>
-                  {firebaseEnabled && (
-                    <button
-                      className="outline-button"
-                      disabled={busy}
-                      onClick={() =>
-                        void run(async () => {
-                          const count = await importSampleExercises(
-                            uid,
-                            workspace.exercises,
-                          );
-                          notify(`${count} esercizi importati`);
-                        }, "Libreria aggiornata")
-                      }
-                    >
-                      <Upload size={16} /> Esempi
-                    </button>
-                  )}
                 </div>
                 <div className="section-meta">
                   {matchingExercises.length} ESERCIZI TROVATI
@@ -1556,19 +1726,139 @@ function App() {
                   placeholder="Es. 10 per lato / 30 secondi"
                 />
               </label>
-              <label>
-                Attrezzo
-                <input
-                  value={exerciseDraft.equipment}
-                  onChange={(e) =>
-                    setExerciseDraft({
-                      ...exerciseDraft,
-                      equipment: e.target.value,
-                    })
+<div className="equipment-field">
+  <div className="equipment-label-row">
+    <strong>Attrezzo</strong>
+
+    <button
+      type="button"
+      className="text-button"
+      onClick={() =>
+        setShowEquipmentManager(!showEquipmentManager)
+      }
+    >
+      <Edit3 size={14} />
+      Gestisci
+    </button>
+  </div>
+
+  <div className="equipment-select-row">
+    <select
+      value={exerciseDraft.equipment}
+      onChange={(e) =>
+        setExerciseDraft({
+          ...exerciseDraft,
+          equipment: e.target.value,
+        })
+      }
+    >
+      {equipmentOptions.map((equipment) => (
+        <option key={equipment} value={equipment}>
+          {equipment}
+        </option>
+      ))}
+    </select>
+
+    <button
+      type="button"
+      className="outline-button"
+      onClick={() => setShowNewEquipment(true)}
+    >
+      <Plus size={16} />
+      Nuovo
+    </button>
+  </div>
+</div>
+{showNewEquipment && (
+  <div className="equipment-new-row">
+    <input
+      value={newEquipmentName}
+      onChange={(e) =>
+        setNewEquipmentName(e.target.value)
+      }
+      placeholder="Es. Magic Circle"
+      autoFocus
+    />
+
+    <button
+      type="button"
+      className="primary-button"
+      disabled={!newEquipmentName.trim() || busy}
+      onClick={() => void saveNewEquipment()}
+    >
+      <Check size={16} />
+      Salva
+    </button>
+
+    <button
+      type="button"
+      className="outline-button"
+      onClick={() => {
+        setNewEquipmentName("");
+        setShowNewEquipment(false);
+      }}
+    >
+      Annulla
+    </button>
+  </div>
+)}
+{showEquipmentManager && (
+  <div className="equipment-manager">
+    <div className="form-section-heading">
+      <strong>Gestione attrezzi</strong>
+
+      <span>
+        {workspace.equipment.length} salvati
+      </span>
+    </div>
+
+    {workspace.equipment.length === 0 ? (
+      <div className="empty-state">
+        Non hai ancora creato attrezzi.
+      </div>
+    ) : (
+      <div className="equipment-manager-list">
+        {workspace.equipment
+          .slice()
+          .sort((a, b) =>
+            a.name.localeCompare(b.name, "it"),
+          )
+          .map((equipment) => (
+            <div
+              className="equipment-manager-row"
+              key={equipment.id}
+            >
+              <span>{equipment.name}</span>
+
+              <div>
+                <button
+                  type="button"
+                  className="icon-btn"
+                  title="Rinomina attrezzo"
+                  onClick={() =>
+                    void renameEquipment(equipment)
                   }
-                  placeholder="Es. Tappetino, ring, softball"
-                />
-              </label>
+                >
+                  <Edit3 size={15} />
+                </button>
+
+                <button
+                  type="button"
+                  className="icon-btn danger-link"
+                  title="Elimina attrezzo"
+                  onClick={() =>
+                    void removeEquipment(equipment)
+                  }
+                >
+                  <Trash2 size={15} />
+                </button>
+              </div>
+            </div>
+          ))}
+      </div>
+    )}
+  </div>
+)}
             </div>
             <label>
               Varianti e approfondimenti <small>(una variante per riga)</small>
