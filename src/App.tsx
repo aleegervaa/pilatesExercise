@@ -882,9 +882,6 @@ const removeEquipment = async (equipment: Equipment) => {
             <div className="avatar">LP</div>
             <div className="profile-name">
               <strong>Lalla Pilates</strong>
-              <small>
-                {firebaseEnabled ? "Dati su Firebase" : "Modalità demo locale"}
-              </small>
             </div>
           </div>
           {firebaseEnabled && (
@@ -912,9 +909,7 @@ const removeEquipment = async (equipment: Equipment) => {
             <div className="topbar-mobile-title">Lalla Pilates Studio</div>
           </div>
           <div className="topbar-right">
-            <Badge tone={firebaseEnabled ? "mint" : "purple"}>
-              {firebaseEnabled ? "● Firebase attivo" : "◉ Demo locale"}
-            </Badge>
+           
             <span className="today-date">{formatDate(today())}</span>
           </div>
         </header>
